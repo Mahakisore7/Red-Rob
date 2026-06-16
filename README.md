@@ -1,6 +1,6 @@
 # Redrob Track 1 — v5 "Aptus-R" — Intelligent Candidate Ranking System
 
-**Team Code Blooded** · Mahakisore · Jaswanth Saravanan · RamKumar KR
+**Team Code Blooded** ·
 **Hackathon:** Redrob × Hack2skill "India Runs" — Track 1: The Data & AI Challenge
 **Goal:** Rank the 100 best candidates out of 100,000 synthetic profiles for the
 *Senior AI Engineer — Founding Team* role at Redrob AI.
