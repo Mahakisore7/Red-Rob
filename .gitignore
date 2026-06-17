@@ -1,0 +1,86 @@
+# ============================================================================
+# Aptus-R — .gitignore
+# Keeps large data, model weights, build artifacts, and tooling junk out of git.
+# See docs/06_git_strategy.md and docs/10_containerization_repro.md.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Challenge dataset (organizer-provided; NOT redistributed)
+#   candidates.jsonl is ~465 MB — far over GitHub's 100 MB limit.
+#   The repo references the data by path; provided helpers (validate_submission.py,
+#   submission_metadata_template.yaml) get COPIED into the repo proper, not tracked
+#   from inside Dataset/. See docs/06_git_strategy.md.
+# ----------------------------------------------------------------------------
+Dataset/
+
+# Raw candidate data anywhere it lands (compressed or not)
+data/
+candidates.jsonl
+candidates.jsonl.gz
+*.jsonl.gz
+
+# ----------------------------------------------------------------------------
+# Model weights (downloaded once in Phase A; pinned by MODEL_MANIFEST.json sha256)
+# ----------------------------------------------------------------------------
+models/
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.onnx
+
+# ----------------------------------------------------------------------------
+# Precompute artifacts (rebuilt by aptus-precompute; FAISS index too large to commit)
+# ----------------------------------------------------------------------------
+artifacts/
+*.index
+*.faiss
+
+# The submission output itself (regenerated; tagged + sha256'd in commit body)
+submission.csv
+
+# ----------------------------------------------------------------------------
+# Python / uv
+# ----------------------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.uv/
+# NOTE: uv.lock is committed (authoritative) — do NOT ignore it.
+
+# ----------------------------------------------------------------------------
+# Tooling caches
+# ----------------------------------------------------------------------------
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# ----------------------------------------------------------------------------
+# Notebooks
+# ----------------------------------------------------------------------------
+.ipynb_checkpoints/
+
+# ----------------------------------------------------------------------------
+# OS / editor junk
+# ----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
