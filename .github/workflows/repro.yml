@@ -1,0 +1,24 @@
+name: repro
+on:
+  workflow_dispatch: {}
+  push: { tags: ['v*', 'submission-*'] }
+
+jobs:
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --frozen
+      - name: Build fixture artifacts
+        run: uv run aptus-precompute --candidates tests/data/mini.jsonl.gz --out-dir /tmp/art
+      - name: Rank twice
+        run: |
+          uv run aptus-rank --candidates tests/data/mini.jsonl.gz --out /tmp/a.csv
+          uv run aptus-rank --candidates tests/data/mini.jsonl.gz --out /tmp/b.csv
+      - name: Assert byte-identical
+        run: diff /tmp/a.csv /tmp/b.csv && echo "deterministic ✓"
+      - name: Offline check (no network during rank)
+        run: |
+          sudo unshare -n uv run aptus-rank --candidates tests/data/mini.jsonl.gz --out /tmp/c.csv
+          echo "offline ✓"

@@ -1,0 +1,21 @@
+# See docs/10_containerization_repro.md §3
+.venv/
+__pycache__/
+*.pyc
+.git/
+.github/
+notebooks/
+sandbox/
+tests/
+Dataset/
+data/*.jsonl
+data/*.jsonl.gz
+models/*.gguf
+artifacts/*.index
+docs/
+*.pdf
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
