@@ -1,0 +1,110 @@
+# title_taxonomy.yaml — Aptus-R v5
+# Title tier pyramid used in FR-7e (keyword stuffer detection) and EDA analysis.
+# Tier 1 = strongest signal toward the JD target; Tier 5 = no signal or noise.
+
+tiers:
+  tier_1:
+    label: "Rare senior AI/ML engineering roles"
+    description: "Exact or near-exact match to the JD target role"
+    examples:
+      - senior ai engineer
+      - staff ai engineer
+      - principal ai engineer
+      - senior ml engineer
+      - staff ml engineer
+      - principal ml engineer
+      - senior applied scientist
+      - staff applied scientist
+      - senior research engineer
+      - ml platform engineer
+      - ai infrastructure engineer
+      - senior nlp engineer
+      - senior search engineer
+      - senior ranking engineer
+      - senior retrieval engineer
+      - senior recommendation engineer
+
+  tier_2:
+    label: "Mid-level AI/ML engineering"
+    description: "On-path but junior or mid level"
+    examples:
+      - ai engineer
+      - ml engineer
+      - machine learning engineer
+      - applied ml engineer
+      - applied scientist
+      - data scientist
+      - nlp engineer
+      - search engineer
+      - recommendation engineer
+      - computer vision engineer
+
+  tier_3:
+    label: "Data / Analytics engineering"
+    description: "Adjacent — data skill overlap but not product ML"
+    examples:
+      - data engineer
+      - senior data engineer
+      - data analyst
+      - analytics engineer
+      - bi engineer
+      - bi developer
+      - data platform engineer
+      - etl developer
+
+  tier_4:
+    label: "General software engineering"
+    description: "SWE with possible ML exposure but not the target"
+    examples:
+      - software engineer
+      - software developer
+      - backend engineer
+      - fullstack engineer
+      - frontend engineer
+      - platform engineer
+      - devops engineer
+      - site reliability engineer
+      - sre
+
+  tier_5:
+    label: "Non-technical / unrelated"
+    description: "No meaningful signal toward the JD; used in FR-7e keyword stuffer check"
+    examples:
+      - hr manager
+      - recruiter
+      - talent acquisition
+      - account manager
+      - project manager
+      - product manager
+      - program manager
+      - scrum master
+      - business analyst
+      - marketing manager
+      - sales manager
+      - operations manager
+      - customer success
+      - content writer
+      - graphic designer
+      - ux designer
+      - finance manager
+      - chartered accountant
+
+# Keywords that indicate a technical title (used in FR-7e negation check)
+technical_title_keywords:
+  - engineer
+  - scientist
+  - developer
+  - architect
+  - analyst
+  - researcher
+  - data
+  - ml
+  - ai
+  - nlp
+  - cv
+  - sre
+  - devops
+  - platform
+  - backend
+  - fullstack
+  - frontend

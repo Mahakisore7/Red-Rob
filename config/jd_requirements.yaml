@@ -1,0 +1,201 @@
+# jd_requirements.yaml — Aptus-R v5 · All weights/thresholds read at runtime (FR-12 / G2).
+# Every entry is annotated with the JD sentence or doc section that justifies the value.
+# REFERENCE_DATE: 2026-06-01  (docs/04_data_model.md)
+
+# ---------------------------------------------------------------------------
+# 1. Signal weights (must sum to 1.0)  — docs/04_data_model.md §3
+# ---------------------------------------------------------------------------
+signal_weights:
+  s1_semantic:    0.30  # "conceptual role alignment no keyword list can capture" — highest weight
+  s2_career_arc:  0.22  # trajectory toward role; recency-weighted
+  s3_behavioral:  0.18  # market validation via recruiter/platform signals
+  s4_recency:     0.15  # hireable = accessible; year-dormant profiles down-weighted
+  s5_intent:      0.15  # actively open to hire right now
+
+# ---------------------------------------------------------------------------
+# 2. S1 — Semantic similarity stretch params  — docs/04_data_model.md §3.S1
+# ---------------------------------------------------------------------------
+s1:
+  cosine_floor: 0.30   # raw cosine below this → S1=0
+  cosine_range: 0.65   # (cosine - floor) / range, clipped to [0,1]
+
+# ---------------------------------------------------------------------------
+# 3. S2 — Career arc anchors & recency weights  — docs/04_data_model.md §3.S2
+# JD: "Senior AI Engineer building retrieval and ranking systems at a product company"
+# ---------------------------------------------------------------------------
+s2:
+  anchors:
+    - "Senior AI Engineer building retrieval and ranking systems at a product company"
+    - "engineer shipping embeddings, vector search and recommendation systems"
+    - "applied ML engineer productionising information retrieval and LLM systems"
+  recency_weights: [1.0, 0.8, 0.6, 0.4, 0.2]  # newest→oldest, max 5 roles used
+
+# ---------------------------------------------------------------------------
+# 4. S3 — Behavioral signal sub-weights  — docs/04_data_model.md §3.S3
+# ---------------------------------------------------------------------------
+s3:
+  saved_by_recruiters_weight: 0.30
+  saved_by_recruiters_cap:    20      # min(val/20, 1)
+  search_appearance_weight:   0.20
+  search_appearance_cap:      100     # min(val/100, 1)
+  completeness_weight:        0.20    # profile_completeness / 100
+  github_weight:              0.20    # max(github_activity, 0) / 100; -1 → 0
+  endorsements_weight:        0.10
+  endorsements_cap:           50      # min(val/50, 1)
+
+# ---------------------------------------------------------------------------
+# 5. S4 — Recency decay  — docs/04_data_model.md §3.S4
+# S4 = exp(-lambda * days_inactive)
+# ---------------------------------------------------------------------------
+s4:
+  decay_lambda: 0.005   # 0d→1.0, 90d→0.64, 180d→0.41, 365d→0.16
+
+# ---------------------------------------------------------------------------
+# 6. S5 — Intent proxy sub-weights  — docs/04_data_model.md §3.S5
+# JD: open to work, responsive, verified contact
+# ---------------------------------------------------------------------------
+s5:
+  open_to_work_weight:             0.30
+  applications_weight:             0.20
+  applications_cap:                10    # min(val/10, 1)
+  recruiter_response_rate_weight:  0.20
+  interview_completion_weight:     0.15
+  verified_contact_weight:         0.10  # verified_email AND verified_phone → 1 else 0
+  linkedin_weight:                 0.05
+  offer_acceptance_weight:         0.10  # if rate >= 0; if -1 sentinel → +0.05 neutral
+
+# ---------------------------------------------------------------------------
+# 7. JD modifiers (multiplicative)  — docs/04_data_model.md §5
+# JD: hybrid preferred, Pune/Noida location, salary band up to ~60 LPA
+# ---------------------------------------------------------------------------
+modifiers:
+  notice:
+    lte_30:  1.00   # ≤30 days
+    lte_60:  0.85   # 31–60 days
+    lte_90:  0.70   # 61–90 days
+    gt_90:   0.55   # 91+ days
+
+  location:
+    # target cities from JD: Pune, Noida/NCR/Delhi/Gurgaon; nearby metros acceptable
+    target_cities:
+      - pune
+      - noida
+      - ncr
+      - delhi
+      - gurgaon
+      - gurugram
+      - hyderabad
+      - mumbai
+      - bengaluru
+      - bangalore
+    target_match:      1.00
+    elsewhere_relocate: 0.85
+    elsewhere_no_relocate: 0.60
+    international:     0.25
+
+  salary_lpa:
+    lte_60:  1.00   # within JD band
+    lte_80:  0.90
+    lte_100: 0.80
+    gt_100:  0.65
+
+  work_mode:
+    hybrid:    1.00   # JD says hybrid
+    flexible:  1.00
+    onsite:    0.90
+    remote:    0.75
+
+# ---------------------------------------------------------------------------
+# 8. Disqualifier penalties (multiplicative, stack)  — docs/04_data_model.md §6
+# ---------------------------------------------------------------------------
+penalties:
+  consulting_only:   0.60   # 100% career at service firms (no product experience)
+  title_chaser:      0.75   # avg tenure last 5 roles < 16 months
+  no_product_exp:    0.70   # zero roles at product company
+
+  # Known service / body-shop firms for consulting_only check
+  service_firms:
+    - tcs
+    - tata consultancy
+    - infosys
+    - wipro
+    - accenture
+    - hcl
+    - hcl technologies
+    - cognizant
+    - capgemini
+    - tech mahindra
+    - mphasis
+    - hexaware
+    - l&t infotech
+    - ltimindtree
+    - niit technologies
+
+  title_chaser_tenure_months: 16   # avg tenure threshold
+  title_chaser_roles:          5   # look at last N roles
+
+# ---------------------------------------------------------------------------
+# 9. Honeypot multiplier  — docs/04_data_model.md §7
+# ---------------------------------------------------------------------------
+honeypot:
+  multiplier: 0.05
+  max_in_top_100: 3   # assertion guard (TRD FR-7g says ≤3 in submission)
+
+# ---------------------------------------------------------------------------
+# 10. Honeypot gate thresholds (FR-7a through FR-7f)  — docs/01_TRD.md §2
+# ---------------------------------------------------------------------------
+honeypot_rules:
+  # FR-7a: expert + zero duration
+  fr7a_min_expert_zero_skills: 2
+
+  # FR-7c: too many experts
+  fr7c_max_expert_skills: 8
+
+  # FR-7d: perfect score no verification
+  fr7d_perfect_completeness: 100
+
+  # FR-7e: keyword stuffer — non-tech title + many AI/ML skills at advanced/expert
+  fr7e_min_aiml_skills: 8
+  fr7e_proficiency_levels: [advanced, expert]
+
+  # FR-7f: assessment contradiction — claimed expert but scored < threshold
+  fr7f_assessment_threshold: 30
+
+  # FR-7b: career math — total duration vs stated YoE
+  fr7b_slack_months: 24   # allow up to 24 months overlap before flagging
+
+# ---------------------------------------------------------------------------
+# 11. Text representation caps  — docs/04_data_model.md §2
+# ---------------------------------------------------------------------------
+text_builder:
+  token_budget:        512
+  max_career_roles:    4
+  career_desc_chars:   200
+  max_skills:          15   # sorted by duration_months DESC
+  max_education:       2
+
+# ---------------------------------------------------------------------------
+# 12. Retrieval  — TRD FR-5/6/8/9
+# ---------------------------------------------------------------------------
+retrieval:
+  faiss_top_k:  500
+  bm25_top_k:   500
+  rrf_k:        60    # RRF denominator: score = 1 / (60 + rank)
+  pool_size:    500   # final pool after RRF dedup
+
+# ---------------------------------------------------------------------------
+# 13. LLM rerank  — TRD FR-14/15/16
+# ---------------------------------------------------------------------------
+llm:
+  default_top_k:    30
+  min_top_k:        10    # adaptive gate never goes below this (DR2)
+  temperature:      0
+  seed:             42
+  n_threads:        1
+  blend_weights:    [1.0, 0.70, 0.40]  # DR1 choices; 0.40 only if LLM beats composite on holdout
+
+# ---------------------------------------------------------------------------
+# 14. Misc
+# ---------------------------------------------------------------------------
+seed: 42
+reference_date: "2026-06-01"

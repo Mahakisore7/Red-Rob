@@ -1,0 +1,178 @@
+# concept_thesaurus.yaml — Aptus-R v5
+# Maps canonical JD concepts to synonym clusters used in S2 career-arc scoring.
+# Purpose: boost role_score for any role whose title/description contains these terms,
+# so S2 isn't hostage to one exact wording (docs/04_data_model.md §3.S2).
+# Used in Phase A (precompute) to enrich role text before embedding.
+
+concepts:
+  retrieval_and_ranking:
+    weight: 1.0   # core JD requirement
+    terms:
+      - retrieval
+      - ranking
+      - information retrieval
+      - search ranking
+      - vector search
+      - semantic search
+      - candidate ranking
+      - recommendation
+      - recommender system
+      - re-ranking
+      - reranking
+      - recall
+      - precision
+      - NDCG
+      - BM25
+      - faiss
+      - ann
+      - approximate nearest neighbor
+      - dense retrieval
+      - sparse retrieval
+      - hybrid retrieval
+      - reciprocal rank fusion
+      - RRF
+      - learning to rank
+      - LTR
+      - pointwise
+      - pairwise
+      - listwise
+
+  embeddings_and_vector_db:
+    weight: 0.90
+    terms:
+      - embedding
+      - embeddings
+      - sentence transformer
+      - sentence-transformers
+      - text embedding
+      - bge
+      - e5
+      - ada
+      - openai embedding
+      - vector database
+      - vector db
+      - pinecone
+      - weaviate
+      - qdrant
+      - chroma
+      - milvus
+      - pgvector
+      - similarity search
+      - cosine similarity
+      - dot product similarity
+      - l2 distance
+      - dense vector
+      - bi-encoder
+      - cross-encoder
+
+  llm_and_nlp:
+    weight: 0.85
+    terms:
+      - large language model
+      - LLM
+      - language model
+      - GPT
+      - bert
+      - transformer
+      - attention
+      - fine-tuning
+      - finetuning
+      - rlhf
+      - instruction tuning
+      - RAG
+      - retrieval augmented generation
+      - prompt engineering
+      - in-context learning
+      - few-shot
+      - zero-shot
+      - chain of thought
+      - llama
+      - mistral
+      - phi
+      - gemma
+      - hugging face
+      - huggingface
+      - NLP
+      - natural language processing
+      - text classification
+      - named entity recognition
+      - NER
+
+  mlops_and_production:
+    weight: 0.80
+    terms:
+      - mlops
+      - ml ops
+      - model serving
+      - model deployment
+      - inference
+      - serving latency
+      - triton
+      - torchserve
+      - bento
+      - fastapi
+      - grpc
+      - kubernetes
+      - k8s
+      - docker
+      - containerization
+      - ci/cd
+      - a/b testing
+      - feature store
+      - data pipeline
+      - etl
+      - airflow
+      - kubeflow
+      - mlflow
+      - weights and biases
+      - wandb
+      - monitoring
+      - model drift
+      - data drift
+      - observability
+
+  machine_learning_core:
+    weight: 0.75
+    terms:
+      - machine learning
+      - deep learning
+      - neural network
+      - gradient descent
+      - backpropagation
+      - scikit-learn
+      - sklearn
+      - xgboost
+      - lightgbm
+      - catboost
+      - random forest
+      - gradient boosting
+      - cross validation
+      - hyperparameter tuning
+      - feature engineering
+      - pytorch
+      - tensorflow
+      - keras
+      - jax
+      - cuda
+      - gpu training
+
+  data_engineering:
+    weight: 0.65
+    terms:
+      - data engineering
+      - spark
+      - pyspark
+      - hadoop
+      - kafka
+      - data lake
+      - data warehouse
+      - dbt
+      - sql
+      - pandas
+      - numpy
+      - parquet
+      - avro
+      - bigquery
+      - redshift
+      - snowflake
+      - databricks
