@@ -71,3 +71,6 @@ RETRIEVAL_CFG: dict[str, Any] = CFG["retrieval"]
 
 #: Text builder caps
 TEXT_CFG: dict[str, Any] = CFG["text_builder"]
+
+#: Output / tie-break block (n_results, score_decimals, tie_break, ...)
+OUTPUT_CFG: dict[str, Any] = CFG["output"]
