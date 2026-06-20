@@ -134,6 +134,32 @@ penalties:
   title_chaser_tenure_months: 16   # avg tenure threshold
   title_chaser_roles:          5   # look at last N roles
 
+  # Product-company industries (career_history[].industry) — a candidate has product
+  # experience if ANY role's industry is in this set. Derived from the dataset's industry
+  # vocabulary (Phase-0 EDA). Everything NOT here (IT Services, Manufacturing, Conglomerate,
+  # Paper Products, Consulting) is treated as non-product. JD: "product over services".
+  product_industries:
+    - software
+    - saas
+    - fintech
+    - e-commerce
+    - ecommerce
+    - food delivery
+    - edtech
+    - adtech
+    - gaming
+    - transportation
+    - insurance tech
+    - healthtech
+    - healthtech ai
+    - ai/ml
+    - ai services
+    - conversational ai
+    - voice ai
+    - internet
+    - consumer electronics
+    - media
+
 # ---------------------------------------------------------------------------
 # 9. Honeypot multiplier  — docs/04_data_model.md §7
 # ---------------------------------------------------------------------------

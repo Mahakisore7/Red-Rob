@@ -10,7 +10,7 @@ repos:
     rev: v1.11.1
     hooks:
       - id: mypy
-        additional_dependencies: [numpy, pandas-stubs, types-PyYAML]
+        additional_dependencies: [numpy, pandas-stubs, types-PyYAML, structlog]
         files: ^src/aptus/
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

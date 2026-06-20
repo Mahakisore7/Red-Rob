@@ -38,6 +38,9 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 CFG: dict[str, Any] = _load_yaml(_JD_YAML)
 
+#: Concept thesaurus (6 JD concepts → synonym clusters) used by the S2 boost.
+THESAURUS: dict[str, Any] = _load_yaml(_THESAURUS_YAML)
+
 # ---------------------------------------------------------------------------
 # Typed constants derived from CFG
 # ---------------------------------------------------------------------------
@@ -50,6 +53,13 @@ SEED: int = int(CFG["seed"])
 
 #: Signal weights dict, e.g. {"s1_semantic": 0.30, ...}
 SIGNAL_WEIGHTS: dict[str, float] = CFG["signal_weights"]
+
+#: Per-signal parameter blocks (stretch params, sub-weights, decay, anchors).
+S1_CFG: dict[str, Any] = CFG["s1"]
+S2_CFG: dict[str, Any] = CFG["s2"]
+S3_CFG: dict[str, Any] = CFG["s3"]
+S4_CFG: dict[str, Any] = CFG["s4"]
+S5_CFG: dict[str, Any] = CFG["s5"]
 
 #: Honeypot gate thresholds
 HONEYPOT_RULES: dict[str, Any] = CFG["honeypot_rules"]
