@@ -12,6 +12,8 @@
 #   from inside Dataset/. See docs/06_git_strategy.md.
 # ----------------------------------------------------------------------------
 Dataset/
+# Organizer bundle as shipped (brackets escaped); contains the 487 MB candidates.jsonl
+\[PUB\] India_runs_data_and_ai_challenge/
 
 # Raw candidate data anywhere it lands (compressed or not)
 data/
