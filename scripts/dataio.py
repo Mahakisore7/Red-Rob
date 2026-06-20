@@ -19,7 +19,7 @@ import gzip
 import sys
 from collections.abc import Iterator
 from pathlib import Path
-from typing import IO
+from typing import IO, cast
 
 # Make ``import aptus`` work when this file is imported from a notebook or a
 # bare ``python scripts/...`` invocation without an installed package.
@@ -38,7 +38,7 @@ DEFAULT_DATA_PATH = Path("data/candidates.jsonl")
 def _open(path: Path) -> IO[bytes]:
     """Open a plain or gzip-compressed JSONL file in binary mode."""
     if path.suffix == ".gz":
-        return gzip.open(path, "rb")
+        return cast("IO[bytes]", gzip.open(path, "rb"))
     return path.open("rb")
 
 
