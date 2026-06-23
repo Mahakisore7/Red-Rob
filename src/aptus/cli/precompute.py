@@ -26,8 +26,11 @@ from numpy.typing import NDArray
 from aptus import facts, features, honeypot
 from aptus.config import ARTIFACTS_DIR, S2_CFG
 from aptus.errors import DataError
+from aptus.jd import build_jd_query
 from aptus.schema import Candidate, full_text
 from aptus.textproc import tokenize
+
+__all__ = ["build_jd_query", "build_parser", "main", "run_precompute"]
 
 logger = logging.getLogger(__name__)
 
@@ -40,21 +43,6 @@ class SupportsEncode(Protocol):
 
     def encode(self, texts: list[str]) -> NDArray[np.float32]:
         """Embed texts → (N, D) L2-normalized float32."""
-
-
-def build_jd_query() -> str:
-    """Build the JD query text embedded for S1 (docs/04 §3 S1).
-
-    Concatenates the S2 JD anchors with the must-have JD skills so the single JD
-    vector captures the role's core (retrieval/ranking/embeddings at a product co).
-    """
-    anchors = " ".join(S2_CFG["anchors"])
-    must_haves = (
-        "Senior AI Engineer building production retrieval ranking and recommendation "
-        "systems, embeddings, vector search, strong Python, product company experience, "
-        "ranking evaluation NDCG MAP."
-    )
-    return f"{anchors} {must_haves}"
 
 
 def _role_scores(

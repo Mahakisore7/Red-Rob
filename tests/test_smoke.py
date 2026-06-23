@@ -9,9 +9,8 @@ def test_package_version():
     assert aptus.__version__ == "0.1.0"
 
 
-def test_cli_stubs_return_zero():
-    # rank/eval are still Phase-2/4 stubs; precompute now requires --candidates.
-    assert rank.main([]) == 0
+def test_eval_stub_returns_zero():
+    # eval is still a Phase-4 stub.
     assert eval_cli.main([]) == 0
 
 
@@ -20,6 +19,16 @@ def test_precompute_requires_candidates():
 
     with pytest.raises(SystemExit):
         precompute.main([])
+
+
+def test_rank_requires_artifacts(tmp_path):
+    # rank now loads Phase-A artifacts; missing dir -> ArtifactError.
+    import pytest
+
+    from aptus.errors import ArtifactError
+
+    with pytest.raises(ArtifactError):
+        rank.main(["--artifacts-dir", str(tmp_path / "nope")])
 
 
 def test_cli_parsers_build():
