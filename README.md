@@ -152,8 +152,39 @@ uv run aptus-rank --candidates data/candidates.jsonl.gz --out submission.csv
 uv run aptus-eval --submission submission.csv --gold eval/gold_set.csv
 ```
 
-Or via the Makefile: `make setup` → `make repro`. Fully offline/containerized run:
-`docker run --network none ... aptus-r:1.0` (see [10_containerization_repro.md](./docs/10_containerization_repro.md)).
+Add `--use-llm` to `aptus-rank` to enable the Phi-3 top-K rerank + grounded reasoning
+(the non-LLM default is the deterministic safety path). Or via the Makefile:
+`make setup` → `make repro`.
+
+---
+
+## Results & compliance (measured)
+
+Eval against our bootstrapped weak-ground-truth set (see [eval/eval_report.md](./eval/eval_report.md);
+labels are auto-generated and **need human correction** before the numbers are authoritative —
+see [eval/labeling_rubric.md](./eval/labeling_rubric.md)):
+
+| ranker | NDCG@10 | NDCG@50 | MAP | P@10 | challenge composite |
+|---|---|---|---|---|---|
+| naive (the sample-submission trap) | 0.442 | 0.551 | 0.635 | 0.400 | 0.502 |
+| title-only | 0.927 | 0.885 | 0.773 | 0.900 | 0.890 |
+| **composite (S1–S5)** | 1.000 | 0.890 | 0.849 | 1.000 | **0.944** |
+| composite + Phi-3 (w=0.70) | 1.000 | 0.894 | 0.856 | 1.000 | 0.947 |
+
+Constraint compliance for the timed `aptus-rank` step:
+
+| Constraint | Limit | Measured |
+|---|---|---|
+| Wall-clock | ≤ 5 min | **3 s** (composite) · **207 s** (with Phi-3 rerank) |
+| RAM peak | ≤ 16 GB | ~5 GB |
+| Network during ranking | none | none (no embedder/HTTP libs on the `rank.py` path) |
+| Output rows | exactly 100 | 100, `validate_submission.py` returns 0 |
+| Honeypots in top-100 | ≤ 10 | **0** |
+| Determinism | byte-identical | ✅ verified across 2 runs (both paths) |
+
+Phase-A precompute (untimed): full 100K embed in **~58 min on an RTX 4050** (GPU is allowed for
+the offline prep; only the timed ranking step is CPU-only). Live demo: `sandbox/streamlit_app.py`
+(paste ≤100 candidate JSON records → ranked table + signal breakdown).
 
 ---
 
