@@ -9,10 +9,15 @@ Phase 3 replaces the top-K with LLM reasoning behind a grounding validator.
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Mapping
 from typing import SupportsFloat, cast
 
 Fact = Mapping[str, object]
+
+#: Max allowed gap between a stated years figure and the real YoE before we
+#: treat the reasoning as ungrounded.
+_YOE_SLACK = 2.0
 
 
 def _stable_variant(cid: str, n: int) -> int:
@@ -62,3 +67,44 @@ def template_reason(fact: Fact, rank: int) -> str:
     if gaps:
         text += f" Concern: {gaps}."
     return text
+
+
+def _skill_names(top_skills: str) -> list[str]:
+    """Lowercased skill names from the 'name (prof, Nmo); ...' facts string."""
+    return [s.split("(")[0].strip().lower() for s in top_skills.split(";") if s.strip()]
+
+
+def is_grounded(reasoning_text: str, fact: Fact) -> bool:
+    """Reject reasoning that invents facts (FR-19 grounding validator).
+
+    Requires the text to anchor to a real field (a word from the title or one of the
+    candidate's skills), and any stated years figure to be within slack of the real
+    YoE. Conservative by design: when in doubt, the caller falls back to a template.
+    """
+    text = reasoning_text.lower().strip()
+    if not text:
+        return False
+
+    title_words = [w for w in str(fact["current_title"]).lower().split() if len(w) > 2]
+    skills = _skill_names(str(fact["top_skills"]))
+    company = str(fact["current_company"]).lower()
+    anchored = (
+        any(w in text for w in title_words)
+        or any(s and s in text for s in skills)
+        or (len(company) > 2 and company in text)
+    )
+    if not anchored:
+        return False
+
+    yoe = float(cast(SupportsFloat, fact["years_of_experience"]))
+    for years in re.findall(r"(\d{1,2})\s*\+?\s*(?:y|yr|yrs|year|years)\b", text):
+        if abs(int(years) - yoe) > _YOE_SLACK:
+            return False
+    return True
+
+
+def choose_reasoning(fact: Fact, rank: int, llm_reasoning: str | None) -> str:
+    """Use grounded LLM reasoning when available; otherwise the template (FR-18)."""
+    if llm_reasoning and is_grounded(llm_reasoning, fact):
+        return llm_reasoning.strip()
+    return template_reason(fact, rank)
