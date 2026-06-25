@@ -15,7 +15,7 @@ import argparse
 import json
 import logging
 import pickle
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Protocol
 
@@ -25,6 +25,7 @@ from numpy.typing import NDArray
 
 from aptus import facts, features, honeypot
 from aptus.config import ARTIFACTS_DIR, S2_CFG
+from aptus.dataio import iter_records
 from aptus.errors import DataError
 from aptus.jd import build_jd_query
 from aptus.schema import Candidate, full_text
@@ -167,13 +168,6 @@ def run_precompute(
     return {"n": n, "honeypots": len(honeypot_ids), "dim": dim}
 
 
-def _iter_records(path: str) -> Iterator[dict]:  # type: ignore[type-arg] # pragma: no cover
-    # Thin wrapper kept out of coverage; the loader itself is tested via scripts.dataio.
-    from scripts.dataio import iter_records
-
-    yield from iter_records(path)
-
-
 def build_parser() -> argparse.ArgumentParser:
     """Build the ``aptus-precompute`` argument parser."""
     parser = argparse.ArgumentParser(
@@ -196,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - integratio
 
     embedder = Embedder(device=args.device)
     summary = run_precompute(
-        _iter_records(args.candidates), Path(args.out_dir), embedder, limit=args.limit
+        iter_records(args.candidates), Path(args.out_dir), embedder, limit=args.limit
     )
     logger.info("precompute complete: %s", summary)
     return 0
