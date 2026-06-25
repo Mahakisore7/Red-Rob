@@ -1,0 +1,105 @@
+# Redrob Hackathon — Submission Metadata (Aptus-R v5, Team Code Blooded)
+# Filled from submission_metadata_template.yaml. Technical/measured fields are
+# complete; team-identity, contact, and AI-tools fields are left for the team to
+# fill in honestly before upload.
+
+# ============================================================================
+# Team identity  — FILL THESE
+# ============================================================================
+team_name: "Code Blooded"
+
+primary_contact:
+  name: "TODO"
+  email: "TODO"
+  phone: "TODO"
+
+team_members:
+  - name: "Mahakisore"
+    email: "TODO"
+    role: "Eng lead / infra"
+  - name: "Jaswanth Saravanan"
+    email: "TODO"
+    role: "Eval / data"
+  - name: "RamKumar KR"
+    email: "TODO"
+    role: "LLM / reasoning"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/Mahakisore7/Red-Rob"
+sandbox_link: "TODO — deploy sandbox/streamlit_app.py to a HuggingFace Space"
+reproduce_command: "uv run aptus-rank --candidates ./candidates.jsonl --out ./submission.csv"
+# Phase A (untimed, once): uv run aptus-precompute --candidates ./candidates.jsonl
+# Phase B (timed, the line above) reads the precomputed artifacts; <5 min, CPU, offline.
+
+# ============================================================================
+# Compute environment  (measured on the dev box)
+# ============================================================================
+compute:
+  platform: "Windows 11 laptop (RTX 4050 used for Phase-A embedding only)"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11.15"
+  os: "Windows 11"
+  uses_gpu_for_inference: false        # the timed ranking step is CPU-only
+  has_network_during_ranking: false    # rank.py imports no network/embedder libs
+  pre_computation_required: true        # embeddings + FAISS + BM25 + features built offline
+  pre_computation_time_minutes: 58      # full 100K embed on the RTX 4050 (Phase A)
+
+# ============================================================================
+# Models (both local at inference; downloaded once in Phase A)
+# ============================================================================
+models:
+  - "BAAI/bge-large-en-v1.5 (MIT) — embeddings for S1/S2, local"
+  - "Phi-3-mini-4k-instruct q4_K_M GGUF (MIT) — top-K rerank + reasoning, local CPU"
+
+# ============================================================================
+# Ranking step (measured)
+# ============================================================================
+ranking_step:
+  network_used: false
+  wall_clock_sec_non_llm: 3        # safety submission (composite only)
+  wall_clock_sec_with_llm: 207     # composite + Phi-3 rerank of the top-K
+  ram_peak_gb: 5                   # FAISS memmap + BM25 + parquet + GGUF
+  deterministic: true              # byte-identical CSV across runs (verified)
+  honeypots_in_top_100: 0
+
+llm_blend_weight: 0.70   # provisional (Decision Rule 1 inconclusive on weak labels; see eval/)
+
+# ============================================================================
+# Offline precompute declaration
+# ============================================================================
+offline_precompute:
+  declared: true
+  steps: [parse, skill_index, honeypot_gate, text_build, bge-large_embed, FAISS, BM25, features, facts, jd_embedding]
+  network_used: true   # Phase A only (one-time model download)
+artifacts_rebuilt: [faiss.index, bm25.pkl, candidate_features.parquet, candidate_facts.parquet, id_map.json, honeypot_ids.json, jd_embedding.npy]
+
+# ============================================================================
+# AI tools declaration  — FILL HONESTLY (transparency only, not penalized)
+# ============================================================================
+ai_tools_used: ["TODO — declare honestly"]
+ai_usage_summary: |
+  TODO: describe how AI tools were used (e.g. code review, autocomplete). No candidate
+  data is sent to any hosted LLM at ranking time — the only model in the ranking path is
+  the local Phi-3-mini GGUF.
+
+# ============================================================================
+# Approach + declarations
+# ============================================================================
+methodology_summary: |
+  Dual retrieval (FAISS dense + BM25 lexical) fused by Reciprocal Rank Fusion into a
+  ~500 pool, scored by a 5-signal composite (semantic, career-arc, behavioral, recency,
+  intent) with multiplicative JD modifiers and disqualifier penalties; honeypots are
+  gated and crushed x0.05. The top-K are reranked by a local Phi-3-mini (deterministic,
+  adaptive time gate) and blended; reasoning is grounded against the record. Every weight
+  is config-driven and traced to the JD; the eval harness (NDCG/MAP/P@10) shows the
+  composite beats the naive baseline decisively.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true        # 6-rule gate + x0.05 + terminal assertion (0 in top-100)
+  reproduction_tested: true

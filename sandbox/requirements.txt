@@ -1,0 +1,15 @@
+# Sandbox (HF Spaces) deps — mirrors root pins. The Space clones the repo and the
+# app adds src/ to the path, so no package install is needed.
+streamlit==1.36.0
+sentence-transformers==3.0.1
+torch==2.3.1
+transformers==4.42.4
+faiss-cpu==1.8.0
+rank-bm25==0.2.2
+numpy==1.26.4
+pandas==2.2.2
+pyarrow==16.1.0
+pyyaml==6.0.1
+orjson==3.10.6
+scikit-learn==1.5.1
+structlog==24.2.0
