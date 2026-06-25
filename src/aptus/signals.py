@@ -80,3 +80,12 @@ def final_score(s1: float, feat: Feature) -> float:
     base *= penalty_product(feat)
     base *= honeypot_mult(bool(feat["is_honeypot"]))
     return base
+
+
+def blend(composite_score: float, llm_fit_0_100: float, weight: float) -> float:
+    """Blend composite with the LLM fit score (docs/04 §8 top-K blend).
+
+    ``final = w * composite + (1 - w) * (llm_fit / 100)``. ``weight`` is the
+    provisional w (Phase 3) finalized by measurement in Phase 4 (DR1).
+    """
+    return weight * composite_score + (1.0 - weight) * (llm_fit_0_100 / 100.0)
