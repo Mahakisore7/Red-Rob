@@ -9,9 +9,11 @@ def test_package_version():
     assert aptus.__version__ == "0.1.0"
 
 
-def test_eval_stub_returns_zero():
-    # eval is still a Phase-4 stub.
-    assert eval_cli.main([]) == 0
+def test_eval_requires_submission():
+    import pytest
+
+    with pytest.raises(SystemExit):
+        eval_cli.main([])
 
 
 def test_precompute_requires_candidates():
