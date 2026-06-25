@@ -44,3 +44,28 @@ def test_variation_across_candidates() -> None:
     }
     # deterministic templates but should produce more than one distinct phrasing
     assert len(texts) > 1
+
+
+# --- grounding validator --------------------------------------------------
+def test_is_grounded_accepts_anchored_text() -> None:
+    assert reasoning.is_grounded("Strong ML Engineer with Python depth, 7 years.", _fact())
+
+
+def test_is_grounded_rejects_unanchored() -> None:
+    # mentions nothing from the profile (no title word, skill, or company)
+    assert not reasoning.is_grounded("A wonderful candidate overall.", _fact())
+
+
+def test_is_grounded_rejects_wrong_years() -> None:
+    # title anchored but claims 15 years vs real 7 -> ungrounded
+    assert not reasoning.is_grounded("Senior ML Engineer with 15 years.", _fact())
+
+
+def test_choose_reasoning_prefers_grounded_llm() -> None:
+    llm = "Senior ML Engineer; strong Python and retrieval work."
+    assert reasoning.choose_reasoning(_fact(), 1, llm) == llm
+
+
+def test_choose_reasoning_falls_back_to_template() -> None:
+    out = reasoning.choose_reasoning(_fact(), 1, "Totally invented unrelated text.")
+    assert out.startswith("Strong fit")  # template tone, not the LLM text
