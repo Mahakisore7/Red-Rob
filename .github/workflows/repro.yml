@@ -18,4 +18,6 @@ jobs:
       - run: uv python install 3.11
       - run: uv sync --all-extras --dev --frozen
       - name: Determinism + repro (end-to-end, fake embedder/LLM)
-        run: uv run pytest tests/test_determinism.py tests/test_output.py tests/test_precompute.py -q
+        # --no-cov: this is a targeted determinism subset, not a coverage run
+        # (the cov-fail-under gate lives in the full ci/quality job).
+        run: uv run pytest tests/test_determinism.py tests/test_output.py tests/test_precompute.py -q --no-cov
