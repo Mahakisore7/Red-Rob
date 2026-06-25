@@ -219,6 +219,14 @@ llm:
   seed:             42
   n_threads:        1
   blend_weights:    [1.0, 0.70, 0.40]  # DR1 choices; 0.40 only if LLM beats composite on holdout
+  default_blend_weight: 0.70  # provisional w (Phase 3); finalized by measurement in Phase 4 (DR1)
+  # Local GGUF model (downloaded in Phase A; gitignored). Phi-3-mini-4k-instruct q4.
+  model_path:       "models/Phi-3-mini-4k-instruct-q4.gguf"
+  n_ctx:            2048
+  max_tokens:       180
+  top_p:            1.0
+  time_budget_sec:  290    # Phase-B wall-clock target the adaptive gate respects (DR2)
+  assemble_reserve_sec: 15 # headroom kept for blend + template + write + validate
 
 # ---------------------------------------------------------------------------
 # 14. Output / tie-break  — docs/04_data_model.md §9, TRD FR-20/21/22

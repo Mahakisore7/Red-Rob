@@ -11,7 +11,7 @@ from __future__ import annotations
 import csv
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import cast
 
@@ -29,8 +29,17 @@ _N_RESULTS = int(OUTPUT_CFG["n_results"])
 Row = tuple[str, int, str, str]  # candidate_id, rank, score_str, reasoning
 
 
-def build_rows(scored: Sequence[ScoredCandidate], facts: pd.DataFrame) -> list[Row]:
-    """Round scores, enforce tie-break + non-increasing, attach grounded reasoning."""
+def build_rows(
+    scored: Sequence[ScoredCandidate],
+    facts: pd.DataFrame,
+    llm_reasoning: Mapping[str, str] | None = None,
+) -> list[Row]:
+    """Round scores, enforce tie-break + non-increasing, attach grounded reasoning.
+
+    ``llm_reasoning`` maps candidate_id -> raw LLM reasoning; it is used only when it
+    passes the grounding validator, otherwise the template is used (FR-18/19).
+    """
+    llm_reasoning = llm_reasoning or {}
     rounded = sorted(
         ((round(s.score, _DECIMALS), s.candidate_id) for s in scored),
         key=lambda x: (-x[0], x[1]),  # score desc, candidate_id asc (validator tie-break)
@@ -43,7 +52,7 @@ def build_rows(scored: Sequence[ScoredCandidate], facts: pd.DataFrame) -> list[R
         prev = score
         fact = cast("dict[str, object]", facts.loc[cid].to_dict())
         fact["candidate_id"] = cid
-        reason = reasoning.template_reason(fact, rank)
+        reason = reasoning.choose_reasoning(fact, rank, llm_reasoning.get(cid))
         rows.append((cid, rank, f"{score:.{_DECIMALS}f}", reason))
     return rows
 
@@ -86,9 +95,10 @@ def write_submission(
     out_path: str | Path,
     *,
     validate: bool = True,
+    llm_reasoning: Mapping[str, str] | None = None,
 ) -> dict[str, object]:
     """Build rows, write CSV, assert honeypots, and (optionally) run the validator."""
-    rows = build_rows(scored, facts)
+    rows = build_rows(scored, facts, llm_reasoning)
     if len(rows) != _N_RESULTS:
         raise DataError(f"expected {_N_RESULTS} rows, got {len(rows)}")
     write_csv(rows, out_path)
