@@ -188,7 +188,3 @@ the offline prep; only the timed ranking step is CPU-only). Live demo: `sandbox/
 
 ---
 
-## Status legend used across phase docs
-
-- ☐ not started ☑ done ⚠ blocked/at-risk
-- Every phase doc ends with a **Definition of Done** and the **git tag** cut at completion.
