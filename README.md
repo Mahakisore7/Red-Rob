@@ -82,36 +82,42 @@ Two zones hinged on a versioned **artifact store**: everything slow and heavy ha
 flowchart TB
   subgraph SRC["Data Sources"]
     direction LR
-    DS[("candidates.jsonl · 100K · 487 MB")]
-    JD[/"Job Description"/]
+    DS[("candidates.jsonl - 100K - 487 MB")]
+    JD["Job Description"]
   end
 
-  subgraph PA["Phase A — Offline Precompute (GPU + network OK · run once)"]
+  subgraph PA["Phase A - Offline Precompute (GPU + network OK, run once)"]
     direction TB
-    P1["Stream Parser (orjson)"] --> P2["skill_index() merge"] --> P3["Honeypot Gate · 6 rules"] --> P4["Text Builder"] --> P5["Embedder · bge-large-en-v1.5"]
-    P2 --> P6["Feature Engine · S2–S5 + modifiers + penalties"] --> P7["Facts Engine"]
+    P1["Stream Parser (orjson)"] --> P2["skill_index merge"] --> P3["Honeypot Gate - 6 rules"] --> P4["Text Builder"] --> P5["Embedder - bge-large-en-v1.5"]
+    P2 --> P6["Feature Engine - S2-S5 + modifiers + penalties"] --> P7["Facts Engine"]
   end
 
   subgraph ART["Artifact Store"]
-    direction LR
-    A1[("faiss.index")] ~~~ A2[("bm25.pkl")] ~~~ A3[("features.parquet")] ~~~ A4[("facts.parquet")] ~~~ A5[("jd_embedding.npy")] ~~~ A6[("honeypot_ids.json")] ~~~ A7[("id_map.json")]
-  end
-
-  subgraph PB["Phase B — Timed Ranking (≤5 min · CPU · offline · deterministic)"]
     direction TB
-    B1["Artifact Loader"] --> B2["FAISS top-500"] --> B4["RRF Fusion → pool 500"]
+    A1[("faiss.index")]
+    A2[("bm25.pkl")]
+    A3[("features.parquet")]
+    A4[("facts.parquet")]
+    A5[("jd_embedding.npy")]
+    A6[("honeypot_ids.json")]
+    A7[("id_map.json")]
+  end
+
+  subgraph PB["Phase B - Timed Ranking (5 min, CPU, offline, deterministic)"]
+    direction TB
+    B1["Artifact Loader"] --> B2["FAISS top-500"] --> B4["RRF Fusion - pool 500"]
     B1 --> B3["BM25 top-500"] --> B4
-    B4 --> B5["5-Signal Scorer<br/>0.30·S1+0.22·S2+0.18·S3+0.15·S4+0.15·S5<br/>× modifiers × penalties × honeypot 0.05"]
-    B5 --> B6["Phi-3-mini Reranker<br/>temp=0 · seed=42 · adaptive K 30→10"] --> B7["Blend w·composite+(1−w)·llm"] --> B8["Reasoning + Grounding Validator"] --> B9["Output Formatter"] --> B10["Self-Validation"]
+    B4 --> B5["5-Signal Scorer<br/>0.30 S1 + 0.22 S2 + 0.18 S3 + 0.15 S4 + 0.15 S5<br/>x modifiers x penalties x honeypot 0.05"]
+    B5 --> B6["Phi-3-mini Reranker<br/>temp=0, seed=42, adaptive K 30 to 10"] --> B7["Blend: w*composite + (1-w)*llm"] --> B8["Reasoning + Grounding Validator"] --> B9["Output Formatter"] --> B10["Self-Validation"]
   end
 
-  OUT[/"submission.csv · 100 ranked rows"/]
+  OUT["submission.csv - 100 ranked rows"]
 
-  subgraph PC["Phase C — Evaluation (untimed)"]
-    C1[("gold_set.csv · 180 labels")] --> C2["Eval Harness · NDCG/MAP/P@10"] --> C3["Ablation + Decision Rule 1"]
+  subgraph PC["Phase C - Evaluation (untimed)"]
+    C1[("gold_set.csv - 180 labels")] --> C2["Eval Harness - NDCG/MAP/P@10"] --> C3["Ablation + Decision Rule 1"]
   end
 
-  CFG[("jd_requirements.yaml · JD-traced weights")]
+  CFG[("jd_requirements.yaml - JD-traced weights")]
 
   DS --> P1
   JD --> P5
@@ -127,10 +133,14 @@ flowchart TB
   CFG -. drives .-> B5
   CFG -. drives .-> B6
 
-  classDef a fill:#e0f0e3,stroke:#7fb08a; classDef s fill:#fdf3e0,stroke:#d9b46b;
-  classDef b fill:#dceaf7,stroke:#7fa8cc; classDef c fill:#e8e3f5,stroke:#8b7fc0;
-  class P1,P2,P3,P4,P5,P6,P7 a; class A1,A2,A3,A4,A5,A6,A7,C1,CFG s;
-  class B1,B2,B3,B4,B5,B6,B7,B8,B9,B10 b; class C2,C3 c;
+  classDef a fill:#e0f0e3,stroke:#7fb08a
+  classDef s fill:#fdf3e0,stroke:#d9b46b
+  classDef b fill:#dceaf7,stroke:#7fa8cc
+  classDef c fill:#e8e3f5,stroke:#8b7fc0
+  class P1,P2,P3,P4,P5,P6,P7 a
+  class A1,A2,A3,A4,A5,A6,A7,C1,CFG s
+  class B1,B2,B3,B4,B5,B6,B7,B8,B9,B10 b
+  class C2,C3 c
 ```
 
 ## End-to-end workflow
@@ -139,23 +149,23 @@ The runtime decision flow — note the four control points that make it robust: 
 
 ```mermaid
 flowchart TD
-  A["Load artifacts"] --> B["FAISS top-500 + BM25 top-500"] --> C["RRF fusion → 500 pool"]
-  C --> D["Compute S1 + look up S2–S5; apply modifiers + penalties"]
+  A["Load artifacts"] --> B["FAISS top-500 + BM25 top-500"] --> C["RRF fusion - 500 pool"]
+  C --> D["Compute S1 + look up S2-S5; apply modifiers + penalties"]
   D --> E{"Honeypot?"}
-  E -- Yes --> F["× 0.05 (crush)"] --> G
+  E -- Yes --> F["x 0.05 crush"] --> G
   E -- No --> G["Composite score; sort; take top 100"]
   G --> H["Select top-K (30)"]
   H --> I{"Time budget<br/>at risk?"}
-  I -- Yes --> J["Shrink K 30→20→15→10<br/>(never below 10)"] --> K
-  I -- No --> K["Prompt Phi-3-mini → parse JSON"]
+  I -- Yes --> J["Shrink K 30 to 10<br/>(never below 10)"] --> K
+  I -- No --> K["Prompt Phi-3-mini; parse JSON"]
   K --> L{"Valid JSON?"}
   L -- No --> M["Fallback: composite + template"] --> P
-  L -- Yes --> N["Blend: w·composite + (1−w)·llm"]
+  L -- Yes --> N["Blend: w*composite + (1-w)*llm"]
   N --> O{"Reasoning<br/>grounded?"}
   O -- No --> Q["Use grounded template"] --> P
   O -- Yes --> R["Use LLM reasoning"] --> P
   P["Re-sort top-100; tie-break by id; round 6dp; non-increasing"] --> S["Write submission.csv"]
-  S --> T{"validator = 0 AND<br/>honeypots ≤ 3?"}
+  S --> T{"validator = 0 AND<br/>honeypots less-equal 3?"}
   T -- No --> U["FAIL LOUD (assert)"]
   T -- Yes --> V["Output: 100 ranked candidates + score + reasoning"]
 ```
