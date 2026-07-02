@@ -39,7 +39,6 @@ artifacts/
 *.faiss
 
 # The submission output itself (regenerated; tagged + sha256'd in commit body)
-submission*.csv
 
 # ----------------------------------------------------------------------------
 # Python / uv
