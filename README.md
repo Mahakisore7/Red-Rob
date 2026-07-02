@@ -133,10 +133,10 @@ flowchart TB
   CFG -. drives .-> B5
   CFG -. drives .-> B6
 
-  classDef a fill:#e0f0e3,stroke:#7fb08a
-  classDef s fill:#fdf3e0,stroke:#d9b46b
-  classDef b fill:#dceaf7,stroke:#7fa8cc
-  classDef c fill:#e8e3f5,stroke:#8b7fc0
+  classDef a fill:#e0f0e3,stroke:#7fb08a,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef s fill:#fdf3e0,stroke:#d9b46b,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef b fill:#dceaf7,stroke:#7fa8cc,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef c fill:#e8e3f5,stroke:#8b7fc0,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
   class P1,P2,P3,P4,P5,P6,P7 a
   class A1,A2,A3,A4,A5,A6,A7,C1,CFG s
   class B1,B2,B3,B4,B5,B6,B7,B8,B9,B10 b
@@ -149,25 +149,30 @@ The runtime decision flow — note the four control points that make it robust: 
 
 ```mermaid
 flowchart TD
-  A["Load artifacts"] --> B["FAISS top-500 + BM25 top-500"] --> C["RRF fusion - 500 pool"]
-  C --> D["Compute S1 + look up S2-S5; apply modifiers + penalties"]
-  D --> E{"Honeypot?"}
-  E -- Yes --> F["x 0.05 crush"] --> G
-  E -- No --> G["Composite score; sort; take top 100"]
-  G --> H["Select top-K (30)"]
-  H --> I{"Time budget<br/>at risk?"}
-  I -- Yes --> J["Shrink K 30 to 10<br/>(never below 10)"] --> K
-  I -- No --> K["Prompt Phi-3-mini; parse JSON"]
-  K --> L{"Valid JSON?"}
-  L -- No --> M["Fallback: composite + template"] --> P
-  L -- Yes --> N["Blend: w*composite + (1-w)*llm"]
-  N --> O{"Reasoning<br/>grounded?"}
-  O -- No --> Q["Use grounded template"] --> P
-  O -- Yes --> R["Use LLM reasoning"] --> P
-  P["Re-sort top-100; tie-break by id; round 6dp; non-increasing"] --> S["Write submission.csv"]
-  S --> T{"validator = 0 AND<br/>honeypots less-equal 3?"}
-  T -- No --> U["FAIL LOUD (assert)"]
-  T -- Yes --> V["Output: 100 ranked candidates + score + reasoning"]
+  classDef process fill:#e8f4f8,stroke:#2780e3,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef decision fill:#fff3cd,stroke:#ffc107,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef terminal fill:#d4edda,stroke:#28a745,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+  classDef error fill:#f8d7da,stroke:#dc3545,color:#1a1a1a,stroke-width:2px,rx:5px,ry:5px
+
+  A["Load artifacts"]:::process --> B["FAISS top-500 + BM25 top-500"]:::process --> C["RRF fusion - 500 pool"]:::process
+  C --> D["Compute S1 + look up S2-S5; apply modifiers + penalties"]:::process
+  D --> E{"Honeypot?"}:::decision
+  E -- Yes --> F["x 0.05 crush"]:::error --> G
+  E -- No --> G["Composite score; sort; take top 100"]:::process
+  G --> H["Select top-K (30)"]:::process
+  H --> I{"Time budget<br/>at risk?"}:::decision
+  I -- Yes --> J["Shrink K 30 to 10<br/>(never below 10)"]:::process --> K
+  I -- No --> K["Prompt Phi-3-mini; parse JSON"]:::process
+  K --> L{"Valid JSON?"}:::decision
+  L -- No --> M["Fallback: composite + template"]:::process --> P
+  L -- Yes --> N["Blend: w*composite + (1-w)*llm"]:::process
+  N --> O{"Reasoning<br/>grounded?"}:::decision
+  O -- No --> Q["Use grounded template"]:::process --> P
+  O -- Yes --> R["Use LLM reasoning"]:::process --> P
+  P["Re-sort top-100; tie-break by id; round 6dp; non-increasing"]:::process --> S["Write submission.csv"]:::process
+  S --> T{"validator = 0 AND<br/>honeypots less-equal 3?"}:::decision
+  T -- No --> U["FAIL LOUD (assert)"]:::error
+  T -- Yes --> V["Output: 100 ranked candidates + score + reasoning"]:::terminal
 ```
 
 ## How it works
